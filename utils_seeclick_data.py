@@ -25,7 +25,7 @@ def extract_image_features(image_path):
     return image_features
 
 def load_seeclick_data(split, data_dir):
-    with open("/data/zzs800-0/wangyt/seeclick_web.json", 'r') as file:
+    with open("/data/zzs800-0/wangyt/seeclick_web_27k.json", 'r') as file:
         all_data = json.load(file)
     random.shuffle(all_data)
     split_index = int(len(all_data) * 0.8) 
