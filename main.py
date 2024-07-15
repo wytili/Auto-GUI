@@ -100,21 +100,21 @@ if __name__ == '__main__':
     if args.evaluate_dir is not None:
         train_set = None
     else:
-        training_data = load_seeclick_data("train", "/data/zzs800-0/wangyt/seeclick_web_imgs")
+        training_data = load_seeclick_data("train", "/data/zzs800-0/wangyt/seeclick_web_imgs/cpfs01/user/chengkanzhi/seeclick_web_imgs")
         train_set = SeeClickDatasetImg(
             training_data,
             tokenizer,
             args.input_len,
             args.output_len
             )
-    eval_data = load_seeclick_data("val", "/data/zzs800-0/wangyt/seeclick_web_imgs")
+    eval_data = load_seeclick_data("val", "/data/zzs800-0/wangyt/seeclick_web_imgs/cpfs01/user/chengkanzhi/seeclick_web_imgs")
     eval_set = SeeClickDatasetImg(
         eval_data,
         tokenizer,
         args.input_len,
         args.output_len
     )
-    test_data = load_seeclick_data("test", "/data/zzs800-0/wangyt/seeclick_web_imgs")
+    test_data = load_seeclick_data("test", "/data/zzs800-0/wangyt/seeclick_web_imgs/cpfs01/user/chengkanzhi/seeclick_web_imgs")
     test_set = SeeClickDatasetImg(
         test_data,
         tokenizer,

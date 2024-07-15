@@ -11,9 +11,9 @@ from transformers import AutoProcessor, Blip2Model
 
 # BLIP2 model
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model = Blip2Model.from_pretrained("Salesforce/blip2-opt-2.7b", torch_dtype=torch.float16)
+model = Blip2Model.from_pretrained("/data/zzs800-0/wangyt/blip2-opt-2.7b", torch_dtype=torch.float16)
 model.to(device)
-processor = AutoProcessor.from_pretrained("Salesforce/blip2-opt-2.7b")
+processor = AutoProcessor.from_pretrained("/data/zzs800-0/wangyt/blip2-opt-2.7b")
 
 def extract_image_features(image_path):
     image = Image.open(image_path).convert('RGB')
