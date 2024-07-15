@@ -217,11 +217,17 @@ class T5ForMultimodalGeneration(T5ForConditionalGeneration):
         output = self.generate(
             input_ids=input_ids,
             image_ids=image_ids,
+            max_length=250,
             **kwargs
         )
 
         generated_sents = tokenizer.batch_decode(output, skip_special_tokens=True)
-        targets = tokenizer.batch_decode(batch['labels'], skip_special_tokens=True)
+        
+        # 检查是否存在标签
+        if 'labels' in batch:
+            targets = tokenizer.batch_decode(batch['labels'], skip_special_tokens=True)
+        else:
+            targets = ["No labels provided"]  # 提供一个默认值或适当的响应
 
         result = {}
         result['preds'] = generated_sents

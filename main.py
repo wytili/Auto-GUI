@@ -8,7 +8,8 @@ import argparse
 import random
 from transformers import AutoTokenizer, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer
 from model import T5ForMultimodalGeneration
-from utils_data import AITWDatasetImg, load_data
+# from utils_data import AITWDatasetImg, load_data
+from utils_seeclick_data import SeeClickDatasetImg, load_seeclick_data
 from rich.table import Column, Table
 from rich import box
 from rich.console import Console
@@ -99,22 +100,22 @@ if __name__ == '__main__':
     if args.evaluate_dir is not None:
         train_set = None
     else:
-        training_data = load_data(args, "train")
-        train_set = AITWDatasetImg(
+        training_data = load_seeclick_data("train", "/data/zzs800-0/wangyt/seeclick_web_imgs")
+        train_set = SeeClickDatasetImg(
             training_data,
             tokenizer,
             args.input_len,
             args.output_len
             )
-    eval_data = load_data(args, "val")
-    eval_set = AITWDatasetImg(
+    eval_data = load_seeclick_data("val", "/data/zzs800-0/wangyt/seeclick_web_imgs")
+    eval_set = SeeClickDatasetImg(
         eval_data,
         tokenizer,
         args.input_len,
         args.output_len
     )
-    test_data = load_data(args, "test")
-    test_set = AITWDatasetImg(
+    test_data = load_seeclick_data("test", "/data/zzs800-0/wangyt/seeclick_web_imgs")
+    test_set = SeeClickDatasetImg(
         test_data,
         tokenizer,
         args.input_len,
@@ -200,6 +201,7 @@ if __name__ == '__main__':
     if args.evaluate_dir is None:
         trainer.train()
         trainer.save_model(save_dir)
+        print("model saved at: ", save_dir)
         
     # metrics = trainer.evaluate(eval_dataset = test_set, max_length=args.output_len)
     # trainer.log_metrics("test", metrics)
