@@ -44,7 +44,8 @@ def load_seeclick_data(split, data_dir):
         image_features = extract_image_features(img_path)
         
         for element in item['elements']:
-            bbox_center = [(element['bbox'][0] + element['bbox'][2]) / 2, (element['bbox'][1] + element['bbox'][3]) / 2]
+            # bbox_center = [(element['bbox'][0] + element['bbox'][2]) / 2, (element['bbox'][1] + element['bbox'][3]) / 2]
+            bbox_center = [(element['bbox'][1] + element['bbox'][3]) / 2, (element['bbox'][0] + element['bbox'][2]) / 2]# y, x
             question = f"Goal: Click on the '{element['instruction']}' element."
             processed_data.append({
                 'image': image_features,

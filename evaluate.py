@@ -47,10 +47,6 @@ def point_in_bbox(point, bbox):
     x1, y1, x2, y2 = bbox
     return x1 <= x <= x2 and y1 <= y <= y2
 
-def replace_extension(filename, new_extension):
-    base_name, _ = os.path.splitext(filename)
-    return f"{base_name}.{new_extension}"
-
 def process_dataset(dataset_path):
     results = []
     gold = 0
