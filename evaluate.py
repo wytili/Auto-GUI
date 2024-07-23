@@ -1,3 +1,4 @@
+import os
 from PIL import Image
 from transformers import AutoProcessor, Blip2Model, AutoTokenizer
 from model import T5ForMultimodalGeneration
@@ -47,6 +48,12 @@ def point_in_bbox(point, bbox):
     x1, y1, x2, y2 = bbox
     return x1 <= x <= x2 and y1 <= y <= y2
 
+def predict_point(prompt, image_features):
+    input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
+    image_ids = torch.tensor(image_features).unsqueeze(0).to(device)
+    output = model.test_step(tokenizer, batch={"input_ids": input_ids, "image_ids": image_ids})
+    return output['preds'][0]
+
 def process_dataset(dataset_path):
     results = []
     gold = 0
@@ -56,29 +63,17 @@ def process_dataset(dataset_path):
             item = json.loads(line)
 
             prompt = item['goal']
-            image_path = os.path.join('./1b1i/images/', item['target'], item['modified_file'].replace('.html', '.png'))
-            # image_path = os.path.join('./2b/images/', item['target'], item['modified_file'].replace('.html', '.png'))
-            # image_path = os.path.join('./form/images/', item['target'], item['modified_file'].replace('.html', '.png'))
+            image_path = os.path.join('./1b1i/images/', item['modified_file'].replace('.html', '.png'))
+            # image_path = os.path.join('./2b/images/', item['modified_file'].replace('.html', '.png'))
+            # image_path = os.path.join('./form/images/', item['modified_file'].replace('.html', '.png'))
             image_features = extract_image_features(image_path)
             
-            input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(device)
-            image_ids = torch.tensor(image_features).unsqueeze(0).to(device)
-
-            output = model.test_step(tokenizer, batch={"input_ids": input_ids, "image_ids": image_ids})
-            print(f"output: {output}")
-            prediction_string = output['preds'][0]
-            print(f"prediction_string: {prediction_string}")
+            prediction_string = predict_point(item['goal'], image_features)
             formatted_string = '{' + prediction_string + '}'
             prediction_dict = json.loads(formatted_string.replace("'", '"'))
 
-            # 提取数据
-            touch_point = prediction_dict['touch_point']
-
-            coordinates = ast.literal_eval(touch_point)
-            touch_x, touch_y = [float(coord) for coord in coordinates]
-
-            pixel_touch_x = touch_x * 2400
-            pixel_touch_y = touch_y * 1636
+            pixel_touch_x = float(prediction_dict['touch_point'].split(',')[1]) * IMAGE_DIMENSIONS['width']
+            pixel_touch_y = float(prediction_dict['touch_point'].split(',')[0]) * IMAGE_DIMENSIONS['height']
 
             is_in_gold = any(point_in_bbox((pixel_touch_x, pixel_touch_y), bbox) for _, bbox in item['label']['gold'])
             is_in_bad = any(point_in_bbox((pixel_touch_x, pixel_touch_y), bbox) for _, bbox in item['label']['bad'])
@@ -88,18 +83,20 @@ def process_dataset(dataset_path):
             if is_in_bad:
                 bad += 1
             result = {
-                'prediction': prediction_dict,
-                'is_in_gold': is_in_gold,
-                'is_in_bad': is_in_bad
-            }
-
+                    'file_name': item['modified_file'],
+                    'predict_x': pixel_touch_x,
+                    'predict_y': pixel_touch_y
+                }
             results.append(result)
             
             print("==============================")
-            print(f"is_in_gold: {is_in_gold}")
-            print(f"gold: {gold/len(results)}")
-            print(f"is_in_bad: {is_in_bad}")
-            print(f"bad: {bad/len(results)}")
+            print(f"prompt: {prompt}")
+            print(f"file name: {item['modified_file']}")
+            print(f"predict x: {pixel_touch_x} \t predict y: {pixel_touch_y}")
+            print(f"target x: {item['label']['gold'][0][1][0]}-{item['label']['gold'][0][1][2]} \t target y: {item['label']['gold'][0][1][1]}-{item['label']['gold'][0][1][3]}")
+            print(f"gold: {is_in_gold}")
+            print(f"bad: {is_in_bad}")
+            
 
     return results, gold, bad
 
@@ -109,6 +106,7 @@ dataset_path = './1b1i/output_popupbox_phone_1b1i.jsonl'
 # dataset_path = './form/output_popupbox_phone_form.jsonl'
 
 evaluation_results, gold, bad = process_dataset(dataset_path)
-print(evaluation_results)
+with open('predictions_1.json', 'w') as f:
+    json.dump(evaluation_results, f, indent=4)
 print(f"gold: {gold}")
 print(f"bad: {bad}")
