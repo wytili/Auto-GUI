@@ -63,17 +63,18 @@ def process_dataset(dataset_path):
             item = json.loads(line)
 
             prompt = item['goal']
-            image_path = os.path.join('./1b1i/images/', item['modified_file'].replace('.html', '.png'))
-            # image_path = os.path.join('./2b/images/', item['modified_file'].replace('.html', '.png'))
-            # image_path = os.path.join('./form/images/', item['modified_file'].replace('.html', '.png'))
+            # image_path = os.path.join('./1b1i/images/', item['modified_file'].replace('.html', '.png'))
+            #image_path = os.path.join('./2b/images/', item['modified_file'].replace('.html', '.png'))
+            image_path = os.path.join('./form/images/', item['modified_file'].replace('.html', '.png'))
             image_features = extract_image_features(image_path)
             
             prediction_string = predict_point(item['goal'], image_features)
             formatted_string = '{' + prediction_string + '}'
             prediction_dict = json.loads(formatted_string.replace("'", '"'))
 
-            pixel_touch_x = float(prediction_dict['touch_point'].split(',')[1]) * IMAGE_DIMENSIONS['width']
-            pixel_touch_y = float(prediction_dict['touch_point'].split(',')[0]) * IMAGE_DIMENSIONS['height']
+            coordinates = prediction_dict['touch_point'].strip('[]').split(',')
+            pixel_touch_x = float(coordinates[1].strip()) * image_width
+            pixel_touch_y = float(coordinates[0].strip()) * image_height
 
             is_in_gold = any(point_in_bbox((pixel_touch_x, pixel_touch_y), bbox) for _, bbox in item['label']['gold'])
             is_in_bad = any(point_in_bbox((pixel_touch_x, pixel_touch_y), bbox) for _, bbox in item['label']['bad'])
@@ -101,12 +102,12 @@ def process_dataset(dataset_path):
     return results, gold, bad
 
 
-dataset_path = './1b1i/output_popupbox_phone_1b1i.jsonl'
+# dataset_path = './1b1i/output_popupbox_phone_1b1i.jsonl'
 # dataset_path = './2b/output_popupbox_phone_2b.jsonl'
-# dataset_path = './form/output_popupbox_phone_form.jsonl'
+dataset_path = './form/output_popupbox_phone_form.jsonl'
 
 evaluation_results, gold, bad = process_dataset(dataset_path)
-with open('predictions_1.json', 'w') as f:
+with open('predictions_3.json', 'w') as f:
     json.dump(evaluation_results, f, indent=4)
 print(f"gold: {gold}")
 print(f"bad: {bad}")
